@@ -34,12 +34,51 @@ inputActualization_1.Actualizations.forEach(x => {
             }
         }
     }
-    if (validAct) {
+    if (!validAct) {
         validActualizations.push(x);
     }
 });
-// console.log(validActualizations);
+//console.log(validActualizations);
+function actualizationSort(pages) {
+    const graph = new Map();
+    const inDegree = new Map();
+    pages.forEach(page => {
+        graph.set(page, []);
+        inDegree.set(page, 0);
+    });
+    for (const [from, to] of inputRules_1.Rules) {
+        if (graph.has(from) && graph.has(to)) {
+            graph.get(from).push(to);
+            inDegree.set(to, (inDegree.get(to) || 0) + 1);
+        }
+    }
+    const queue = [];
+    for (const [node, degree] of inDegree) {
+        if (degree === 0) {
+            queue.push(node);
+        }
+    }
+    const sorted = [];
+    while (queue.length > 0) {
+        const current = queue.shift();
+        sorted.push(current);
+        for (const neighbor of graph.get(current) || []) {
+            inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+            if (inDegree.get(neighbor) === 0) {
+                queue.push(neighbor);
+            }
+        }
+    }
+    if (sorted.length !== pages.length) {
+        throw new Error("No se puede realizar una ordenación válida: el grafo tiene ciclos.");
+    }
+    return sorted;
+}
+let notValidActualizationUdpated = [];
 validActualizations.forEach(x => {
+    notValidActualizationUdpated.push(actualizationSort(x));
+});
+notValidActualizationUdpated.forEach(x => {
     validPages.push(x[(x.length - 1) / 2]);
 });
 // console.log(validPages);
